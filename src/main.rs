@@ -35,5 +35,8 @@ async fn main() -> Result<(), Box<dyn Error>>  {
     let servers = get_server_list(url.as_str()).await?;
     println!("{:?}", servers);
 
+    let recent_server = servers.data.get(0).unwrap();
+    println!("{:?}", recent_server);
+
     Ok(())
 }
