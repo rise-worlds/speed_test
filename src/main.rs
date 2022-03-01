@@ -28,12 +28,12 @@ async fn main() -> Result<(), Box<dyn Error>>  {
     // });
 
     let location = get_location("https://forge.speedtest.cn/api/location/info").await?;
-    println!("{:?}", location);
+    // println!("{:?}", location);
 
     let url = format(format_args!("https://nodes.speedtest.cn/?https=1&browser=1&page=1&lat={}&lon={}&q=", location.lat, location.lon));
-    println!("{:?}", url);
+    // println!("{:?}", url);
     let servers = get_server_list(url.as_str()).await?;
-    println!("{:?}", servers);
+    // println!("{:?}", servers);
 
     let recent_server = servers.data.get(0).unwrap();
     println!("{:?}", recent_server);
