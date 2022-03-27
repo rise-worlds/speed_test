@@ -1,9 +1,8 @@
+use serde::Deserialize;
 use std::str;
-use serde::{Deserialize};
 
 #[derive(Deserialize, Debug)]
-pub struct LocationInfo
-{
+pub struct LocationInfo {
     pub ip: String,
     pub full_ip: String,
     pub country: String,
@@ -19,8 +18,7 @@ pub struct LocationInfo
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SpeedTestServerItem
-{
+pub struct SpeedTestServerItem {
     pub id: String,
     pub active: String,
     pub https: String,
@@ -42,18 +40,16 @@ pub struct SpeedTestServerItem
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SpeedTestServerMeta
-{
+pub struct SpeedTestServerMeta {
     pub current_page: i32,
     pub last_page: i32,
     pub per_page: i32,
-    pub  total: i32,
-    pub ip: String
+    pub total: i32,
+    pub ip: String,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SpeedTestServerInfo
-{
+pub struct SpeedTestServerInfo {
     pub data: Vec<SpeedTestServerItem>,
-    pub meta: SpeedTestServerMeta
+    pub meta: SpeedTestServerMeta,
 }
