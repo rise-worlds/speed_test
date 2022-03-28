@@ -2,13 +2,17 @@ mod speed_test_structure;
 
 pub extern crate futures;
 pub extern crate tokio;
-pub extern crate websockets;
 
+use futures_util::{future, pin_mut, SinkExt, StreamExt};
 use reqwest;
 use std::error::Error;
 use std::fmt::format;
 use std::str;
-use websockets::WebSocket;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio_tungstenite::*;
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tungstenite::*;
+use url::{ParseError, Url};
 
 pub use speed_test_structure::*;
 
@@ -32,10 +36,14 @@ async fn get_server_list(url: &str) -> Result<SpeedTestServerInfo, reqwest::Erro
 async fn ping_server(url: &str) -> i32 {
     let ping: i32 = 0;
 
-    // let mut ws = WebSocket::connect(url).await?;
-    // ws.send_text("foo".to_string()).await?;
-    // ws.receive().await?;
-    // ws.close(None).await?;
+    let request = Url::parse(url).unwrap();
+    let (mut ws_stream, _) = connect_async(request).await.expect("Failed to connect");
+    while let Some(msg) = ws_stream.next().await {
+        let msg = msg?;
+        if msg.is_text() || msg.is_binary() {
+            ws_stream.send(msg).await;
+        }
+    }
 
     return ping;
 }
