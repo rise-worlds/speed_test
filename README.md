@@ -1,29 +1,33 @@
 # Speed Test
 
 
-## build
-### config windows env
+## 编译
+
+### windows 配置openssl
 
 ```shell
 #安装vcpkg和openssl
+cd F:\Github
 git clone https://github.com/microsoft/vcpkg
 cd vcpkg
 ./bootstrap-vcpkg.bat
-./vcpkg install openssl-windows:x64-windows
 ./vcpkg install openssl:x64-windows-static
-./vcpkg.exe integrate install
 
-# 配置环境变量
-VCPKG_ROOT=F:\Github\vcpkg
-VCPKG_DEFAULT_TRIPLET=x64-windows-release
-VCPKG_DEFAULT_HOST_TRIPLET=x64-windows
+#设置环境变量
+$env:OPENSSL_DIR = 'F:\Github\vcpkg\installed\x64-windows-static'
+$env:OPENSSL_STATIC = 'Yes'
+$env:OPENSSL_NO_VENDOR=1
+$env:OPENSSL_INCLUDE_DIR="F:\Github\vcpkg\installed\x64-windows-static\include"
+$env:OPENSSL_LIB_DIR="F:\Github\vcpkg\installed\x64-windows-static\lib"
 
-OPENSSL_NO_VENDOR=1
-OPENSSL_STATIC=Yes
-OPENSSL_RUST_USE_NASM=0
-RUSTFLAGS=-Ctarget-feature=+crt-static
-VCPKGRS_DYNAMIC=1
-OPENSSL_DIR="%VCPKG_ROOT%\installed\x64-windows-static"
-OPENSSL_INCLUDE_DIR="%VCPKG_ROOT%\installed\x64-windows-static\include"
-OPENSSL_LIB_DIR="%VCPKG_ROOT%\installed\x64-windows-static\lib"
+[System.Environment]::SetEnvironmentVariable('OPENSSL_DIR', $env:OPENSSL_DIR, [System.EnvironmentVariableTarget]::Machine)
+[System.Environment]::SetEnvironmentVariable('OPENSSL_STATIC', $env:OPENSSL_STATIC, [System.EnvironmentVariableTarget]::Machine)
+[System.Environment]::SetEnvironmentVariable('OPENSSL_NO_VENDOR', $env:OPENSSL_NO_VENDOR, [System.EnvironmentVariableTarget]::Machine)
+[System.Environment]::SetEnvironmentVariable('OPENSSL_INCLUDE_DIR', $env:OPENSSL_INCLUDE_DIR, [System.EnvironmentVariableTarget]::Machine)
+[System.Environment]::SetEnvironmentVariable('OPENSSL_LIB_DIR', $env:OPENSSL_LIB_DIR, [System.EnvironmentVariableTarget]::Machine)
+
+#安装choco和make
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+choco install make -y
+
 ```
