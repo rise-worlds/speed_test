@@ -923,6 +923,7 @@ name = "speed_test"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "futures-channel",
  "futures-util",
  "hyper-tls",
  "native-tls",
