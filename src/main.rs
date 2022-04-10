@@ -112,17 +112,18 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
+    // println!("Hello, world!");
     // tokio::spawn(async move {
     // });
 
     let location = get_location("https://forge.speedtest.cn/api/location/info").await?;
     // println!("{:?}", location);
 
-    let url = format(format_args!(
+    let url = std::format!(
         "https://nodes.speedtest.cn/?https=1&browser=1&page=1&lat={}&lon={}&q=",
-        location.lat, location.lon
-    ));
+        location.lat,
+        location.lon
+    );
     // println!("{:?}", url);
     let servers = get_server_list(url.as_str()).await?;
     // println!("{:?}", servers);
