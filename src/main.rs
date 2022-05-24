@@ -58,10 +58,10 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
     // url.query_pairs_mut().append_pair("transport", "websocket");
     // url.set_scheme("wss").unwrap();
 
-    // let (mut wss_stream, _response) = connect_async(url).await.expect("Failed to connect");
-    let (mut wss_stream, _response) = connect_async_tls_with_config(url, None, None)
-        .await
-        .expect("Failed to connect");
+    // // let (mut wss_stream, _response) = connect_async(url).await.expect("Failed to connect");
+    // let (mut wss_stream, _response) = connect_async_tls_with_config(url, None, None)
+    //     .await
+    //     .expect("Failed to connect");
 
     // wss_stream
     //     .send(Message::from("HI"))
@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("{:?}", recent_server);
 
     let ping_url = recent_server.websocket_url.as_str();
-    let ping = ping_server(ping_url).await;
+    let ping = ping_server(ping_url).await?;
     println!("{:?}, ping:{:?}", ping_url, ping);
 
     Ok(())
