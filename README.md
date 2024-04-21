@@ -14,11 +14,11 @@ cd vcpkg
 ./vcpkg install openssl:x64-windows-static
 
 #设置环境变量
-$env:OPENSSL_DIR = 'F:\Github\vcpkg\installed\x64-windows-static'
-$env:OPENSSL_STATIC = 'Yes'
+$env:OPENSSL_DIR='%VCPKG_ROOT%\installed\x64-windows-static'
+$env:OPENSSL_INCLUDE_DIR="%VCPKG_ROOT%\installed\x64-windows-static\include"
+$env:OPENSSL_LIB_DIR="%VCPKG_ROOT%\installed\x64-windows-static\lib"
+$env:OPENSSL_STATIC='Yes'
 $env:OPENSSL_NO_VENDOR=1
-$env:OPENSSL_INCLUDE_DIR="F:\Github\vcpkg\installed\x64-windows-static\include"
-$env:OPENSSL_LIB_DIR="F:\Github\vcpkg\installed\x64-windows-static\lib"
 
 [System.Environment]::SetEnvironmentVariable('OPENSSL_DIR', $env:OPENSSL_DIR, [System.EnvironmentVariableTarget]::Machine)
 [System.Environment]::SetEnvironmentVariable('OPENSSL_STATIC', $env:OPENSSL_STATIC, [System.EnvironmentVariableTarget]::Machine)
