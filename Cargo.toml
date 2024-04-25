@@ -15,10 +15,12 @@ tokio-tungstenite = { version = "0.21.0", features = ["default", "connect", "nat
 url = "2.2.2"
 chrono = "0.4.19"
 native-tls = "0.2.10"
-rustls-native-certs = "0.7.0"
-rustls= "0.23.5"
+#rustls-native-certs = "0.7.0"
+#rustls= "0.23.5"
+#aws-lc-sys = "0.15.0"
 hyper-tls = "0.6.0"
 openssl = { version = "0.10.55", features = ["vendored"]  }
+openssl-sys = "0.9.102"
 tungstenite = "0.21.0"
 
 [dev-dependencies]
