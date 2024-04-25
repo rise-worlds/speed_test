@@ -31,3 +31,4 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 choco install make -y
 
 ```
+### windows 安装配置[Win32OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)

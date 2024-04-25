@@ -6,22 +6,38 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.12.4", features = ["blocking", "json"] }
-tokio = { version = "1.18.5", features = ["full"] }
-serde = { version = "1.0.137", features = ["derive"] }
-serde_json = "1.0.81"
-futures-util = { version = "0.3.21", default-features = false, features = ["async-await", "sink", "std"] }
-tokio-tungstenite = { version = "0.21.0", features = ["default", "connect", "native-tls", "rustls-tls-native-roots"] }
-url = "2.2.2"
-chrono = "0.4.19"
-native-tls = "0.2.10"
+serde_json = "1.0.116"
+url = "2.5.0"
+chrono = "0.4.38"
+native-tls = "0.2.11"
 #rustls-native-certs = "0.7.0"
 #rustls= "0.23.5"
 #aws-lc-sys = "0.15.0"
 hyper-tls = "0.6.0"
-openssl = { version = "0.10.55", features = ["vendored"]  }
+openssl = { version = "0.10.64", features = ["vendored"]  }
 openssl-sys = "0.9.102"
 tungstenite = "0.21.0"
 
+[dependencies.serde]
+version = "1.0.198"
+features = ["derive"]
+
+[dependencies.tokio]
+version = "1.37.0"
+features = ["full"]
+
+[dependencies.reqwest]
+version = "0.12.4"
+features = ["blocking", "json"]
+
+[dependencies.tokio-tungstenite]
+version = "0.21.0"
+features = ["default", "connect", "native-tls", "rustls-tls-native-roots"]
+
+[dependencies.futures-util]
+version = "0.3.30"
+default-features = false
+features = ["async-await", "sink", "std"]
+
 [dev-dependencies]
-futures-channel = "0.3.21"
+futures-channel = "0.3.30"
