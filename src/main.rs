@@ -54,7 +54,7 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
     let mut ping_time: Vec<i64> = Vec::new();
     let mut jitter_temp: Vec<i32> = Vec::new();
 
-    let mut url = Url::parse(ping_url).expect("Can't connect to case count URL");
+    // let mut url = Url::parse(ping_url).expect("Can't connect to case count URL");
     // url.query_pairs_mut().append_pair("transport", "websocket");
     // url.set_scheme("wss").unwrap();
 
@@ -107,7 +107,35 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
     // let jitter = jitter_sum / count as i32;
     // println!("jitter:{}", jitter);
 
+    let uri = Uri::from_static(ping_url);
+    let (mut client, _) = ClientBuilder::from_uri(uri).connect().await?;
+    client.send(Message::from("HI")).await?;
+
+    while let Some(Ok(msg)) = client.next().await {
+        let now = timestamp();   //     i += 1;
+        if i > 1 {
+            jitter_temp.push((now - last_ping_time) as i32);
+        }
+        last_ping_time = now;
+        if i < 10 {
+            ping_time.push(now);
+        }
+        if let Some(text) = msg.as_text() {
+            assert_eq!(text, "Hello world!");
+            // We got one message, just stop now
+            client.close().await?;
+        }
+    }
+
     Ok(ping)
+}
+
+async fn download_server(download_url: &str) -> Result<i32, tungstenite::Error> {
+    OK(0)
+}
+
+async fn upload_server(upload_url: &str) -> Result<i32, tungstenite::Error> {
+    OK(0)
 }
 
 #[tokio::main]
@@ -134,6 +162,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let ping_url = recent_server.websocket_url.as_str();
     let ping = ping_server(ping_url).await?;
     println!("{:?}, ping:{:?}", ping_url, ping);
+
+    let download_url = recent_server.download_url.as_str();
+    let download = download_server(download_url).await?;
+    println!("{:?}, download:{:?}", download_url, download);
+
+    let upload_url = recent_server.upload_url.as_str();
+    let upload = upload_server(upload_url).await?;
+    println!("{:?}, upload:{:?}", upload_url, upload);
 
     Ok(())
 }
