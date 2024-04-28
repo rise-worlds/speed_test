@@ -3,25 +3,16 @@ mod speed_test_structure;
 pub extern crate tokio;
 use chrono::prelude::*;
 use futures_util::{SinkExt, Stream, StreamExt};
-// use http::HeaderMap;
-use native_tls::TlsConnector;
 use reqwest;
 use std::error::Error;
-use std::fmt::{format, Debug};
-use std::pin::Pin;
+use std::fmt::{Debug};
 use std::str;
-use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
-use tokio::net::TcpStream;
-// use tokio_tungstenite::*;
 use tokio_tungstenite::{
-    connect_async, connect_async_tls_with_config, tungstenite::protocol::Message, Connector,
+    connect_async_tls_with_config, tungstenite::protocol::Message,
 };
-// use tungstenite::*;
-// use tungstenite::{connect, Message};
 use tungstenite::client::IntoClientRequest;
-use tungstenite::error::UrlError;
-use url::{ParseError, Url};
+use url::{Url};
 
 pub use speed_test_structure::*;
 
@@ -54,65 +45,23 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
     let mut ping_time: Vec<i64> = Vec::new();
     let mut jitter_temp: Vec<i32> = Vec::new();
 
-    // let mut url = Url::parse(ping_url).expect("Can't connect to case count URL");
-    // url.query_pairs_mut().append_pair("transport", "websocket");
-    // url.set_scheme("wss").unwrap();
+    let mut url = Url::parse(ping_url).expect("Can't connect to case count URL");
+    url.query_pairs_mut().append_pair("transport", "websocket");
+    url.set_scheme("wss").unwrap();
 
-    // // let (mut wss_stream, _response) = connect_async(url).await.expect("Failed to connect");
-    // let (mut wss_stream, _response) = connect_async_tls_with_config(url, None, None)
-    //     .await
-    //     .expect("Failed to connect");
+    // let (mut wss_stream, _response) = connect_async(url).await.expect("Failed to connect");
+    let (mut wss_stream, _response) = connect_async_tls_with_config(url, None, false, None)
+        .await
+        .expect("Failed to connect");
 
-    // wss_stream
-    //     .send(Message::from("HI"))
-    //     .await
-    //     .expect("Failed to send HI");
-    //
-    // while let Some(_msg) = wss_stream.next().await {
-    //     let now = timestamp();
-    //     i += 1;
-    //     if i > 1 {
-    //         jitter_temp.push((now - last_ping_time) as i32);
-    //     }
-    //     last_ping_time = now;
-    //     if i < 10 {
-    //         ping_time.push(now);
-    //     }
-    //
-    //     wss_stream
-    //         .send(Message::from(format!("PING {}", now)))
-    //         .await
-    //         .expect("Failed for send message");
-    //
-    //     if i >= 11 {
-    //         ping_time.push(last_ping_time);
-    //         break;
-    //     }
-    // }
-    //
-    // let mut jitter_sum = 0;
-    // let mut jitter_list: Vec<i32> = Vec::new();
-    // let count = jitter_temp.len();
-    // for i in 0..count {
-    //     let temp = jitter_temp[i];
-    //     if temp < ping {
-    //         ping = temp;
-    //     }
-    //     if i > 0 {
-    //         let jitter = (jitter_temp[i + 1] - temp).abs() as i32;
-    //         jitter_sum += jitter;
-    //         jitter_list.push(jitter);
-    //     }
-    // }
-    // let jitter = jitter_sum / count as i32;
-    // println!("jitter:{}", jitter);
+    wss_stream
+        .send(Message::from("HI"))
+        .await
+        .expect("Failed to send HI");
 
-    let uri = Uri::from_static(ping_url);
-    let (mut client, _) = ClientBuilder::from_uri(uri).connect().await?;
-    client.send(Message::from("HI")).await?;
-
-    while let Some(Ok(msg)) = client.next().await {
-        let now = timestamp();   //     i += 1;
+    while let Some(_msg) = wss_stream.next().await {
+        let now = timestamp();
+        i += 1;
         if i > 1 {
             jitter_temp.push((now - last_ping_time) as i32);
         }
@@ -120,22 +69,45 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
         if i < 10 {
             ping_time.push(now);
         }
-        if let Some(text) = msg.as_text() {
-            assert_eq!(text, "Hello world!");
-            // We got one message, just stop now
-            client.close().await?;
+
+        wss_stream
+            .send(Message::from(format!("PING {}", now)))
+            .await
+            .expect("Failed for send message");
+
+        if i >= 11 {
+            ping_time.push(last_ping_time);
+            break;
         }
     }
+
+    let mut jitter_sum = 0;
+    let mut jitter_list: Vec<i32> = Vec::new();
+    ping = jitter_temp[0];
+    let count = jitter_temp.len();
+    for i in 0..(count - 1) {
+        let temp = jitter_temp[i];
+        if temp < ping {
+            ping = temp;
+        }
+        if i > 0 {
+            let jitter = (jitter_temp[i + 1] - temp).abs() as i32;
+            jitter_sum += jitter;
+            jitter_list.push(jitter);
+        }
+    }
+    let jitter = jitter_sum / count as i32;
+    println!("jitter:{}", jitter);
 
     Ok(ping)
 }
 
 async fn download_server(download_url: &str) -> Result<i32, tungstenite::Error> {
-    OK(0)
+    Ok(0)
 }
 
 async fn upload_server(upload_url: &str) -> Result<i32, tungstenite::Error> {
-    OK(0)
+    Ok(0)
 }
 
 #[tokio::main]
