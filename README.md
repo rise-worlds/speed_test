@@ -3,8 +3,11 @@
 
 ## 编译
 
-### windows 配置openssl
+使用`native-tls`需要安装`openssl`库
 
+### windows 配置 `openssl`
+
+- 使用`vcpkg`安装
 ```shell
 #安装vcpkg和openssl
 cd F:\Github
@@ -31,4 +34,4 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 choco install make -y
 
 ```
-### windows 安装配置[Win32OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)
+- 安装配置[Win32OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)

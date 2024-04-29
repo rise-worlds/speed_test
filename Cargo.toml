@@ -13,10 +13,13 @@ native-tls = "0.2.11"
 #rustls-native-certs = "0.7.0"
 #rustls= "0.23.5"
 #aws-lc-sys = "0.15.0"
-hyper-tls = "0.6.0"
-openssl = { version = "0.10.64", features = ["vendored"]  }
+#hyper-tls = "0.6.0"
 openssl-sys = "0.9.102"
 tungstenite = "0.21.0"
+
+[dependencies.openssl]
+version = "0.10.64"
+features = ["vendored"]
 
 [dependencies.serde]
 version = "1.0.198"

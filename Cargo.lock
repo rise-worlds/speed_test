@@ -1076,7 +1076,6 @@ dependencies = [
  "chrono",
  "futures-channel",
  "futures-util",
- "hyper-tls",
  "native-tls",
  "openssl",
  "openssl-sys",
