@@ -8,6 +8,7 @@ use std::error::Error;
 use std::fmt::{Debug};
 use std::str;
 use tokio::io::AsyncWriteExt;
+use tokio::time::Instant;
 use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite::protocol::Message,
 };
@@ -102,7 +103,24 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
     Ok(ping)
 }
 
-async fn download_server(download_url: &str) -> Result<i32, tungstenite::Error> {
+async fn download_server(download_url: &str) -> Result<i32, reqwest::Error> {
+    let start_time = Instant::now();
+
+    let mut response = reqwest::get(download_url)
+        .await?;
+    let total_size = response.content_length().unwrap_or(0);
+
+    let mut downloaded_size: u64 = 0;
+    // let mut buffer = [0; 4096];
+
+    while let Some(chunk) = response.chunk().await? {
+        downloaded_size += chunk.len() as u64;
+        // 计算下载速度
+        let elapsed_time = start_time.elapsed().as_secs_f64();
+        let download_speed = (downloaded_size as f64 / elapsed_time) / 1024.0; // KB/s
+        println!("Downloaded {:.2}% ({:.2} KB/s)", (downloaded_size as f64 / total_size as f64) * 100.0, download_speed);
+    }
+
     Ok(0)
 }
 
