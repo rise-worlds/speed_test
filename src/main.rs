@@ -7,12 +7,13 @@ use reqwest;
 use std::error::Error;
 use std::fmt::{Debug};
 use std::str;
+pub extern crate rand;
+use rand::prelude::*;
 use tokio::io::AsyncWriteExt;
 use tokio::time::Instant;
 use tokio_tungstenite::{
     connect_async_tls_with_config, tungstenite::protocol::Message,
 };
-use tungstenite::client::IntoClientRequest;
 use url::{Url};
 
 pub use speed_test_structure::*;
@@ -39,7 +40,7 @@ fn timestamp() -> i64 {
     dt.timestamp_millis()
 }
 
-async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
+async fn ping_server(ping_url: &str) -> Result<(i32, i32), tungstenite::Error> {
     let mut i: i32 = 0;
     let mut ping: i32 = 0;
     let mut last_ping_time: i64 = 0;
@@ -98,9 +99,9 @@ async fn ping_server(ping_url: &str) -> Result<i32, tungstenite::Error> {
         }
     }
     let jitter = jitter_sum / count as i32;
-    println!("jitter:{}", jitter);
+    // println!("jitter:{}", jitter);
 
-    Ok(ping)
+    Ok((jitter, ping))
 }
 
 async fn download_server(download_url: &str) -> Result<i32, reqwest::Error> {
@@ -150,11 +151,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("{:?}", recent_server);
 
     let ping_url = recent_server.websocket_url.as_str();
-    let ping = ping_server(ping_url).await?;
-    println!("{:?}, ping:{:?}", ping_url, ping);
+    let (jitter, ping) = ping_server(ping_url).await?;
+    println!("{:?}, ping:{:?}, jitter:{:?}", ping_url, ping, jitter);
 
-    let download_url = recent_server.download_url.as_str();
-    let download = download_server(download_url).await?;
+    let download_url = std::format!("{}?size=50000000&r={}", recent_server.download_url.as_str(), rand::random::<f64>());
+    let download = download_server(download_url.as_str()).await?;
     println!("{:?}, download:{:?}", download_url, download);
 
     let upload_url = recent_server.upload_url.as_str();

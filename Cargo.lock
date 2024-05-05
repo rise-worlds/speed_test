@@ -986,6 +986,7 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
@@ -1343,9 +1344,11 @@ dependencies = [
 name = "speed_test"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-sys",
  "chrono",
  "futures-channel",
  "futures-util",
+ "rand",
  "reqwest",
  "rustls 0.23.5",
  "serde",

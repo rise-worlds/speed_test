@@ -1,13 +1,20 @@
 # Speed Test
-
+`rust`版命令行测试工具，支持[测速网](https://www.speedtest.cn/)
 
 ## 编译
 
-使用`native-tls`需要安装`openssl`库
+### windows 配置预编译环境
+- 安装 [Visual Studio C/C++ Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) 
+- 安装 [CMake](https://cmake.org/download/)，并添加到环境变量。
+- 安装 [NASM](https://nasm.us/)，并添加到环境变量。
+- 安装 [Ninja](https://github.com/ninja-build/ninja/releases)，并添加到环境变量。
+- 安装 [Clang/LLVM](https://github.com/llvm/llvm-project/releases/)，并添加到环境变量。
 
 ### windows 配置 `openssl`
+使用`native-tls`需要安装`openssl`库
 
-- 使用`vcpkg`安装
+- 安装配置[Win32OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)
+- 或者使用`vcpkg`安装
 ```shell
 #安装vcpkg和openssl
 cd F:\Github
@@ -34,4 +41,3 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 choco install make -y
 
 ```
-- 安装配置[Win32OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)
