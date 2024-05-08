@@ -8,10 +8,8 @@ use std::error::Error;
 use std::str;
 pub extern crate rand;
 use tokio::time::Instant;
-use tokio_tungstenite::{
-    connect_async_tls_with_config, tungstenite::protocol::Message,
-};
-use url::{Url};
+use tokio_tungstenite::{connect_async_tls_with_config, tungstenite::protocol::Message};
+use url::Url;
 
 pub use speed_test_structure::*;
 
@@ -23,10 +21,7 @@ async fn get_location(url: &str) -> Result<LocationInfo, reqwest::Error> {
 }
 
 async fn get_server_list(url: &str) -> Result<SpeedTestServerInfo, reqwest::Error> {
-    let body = reqwest::get(url)
-        .await?
-        .json::<SpeedTestServerInfo>()
-        .await?;
+    let body = reqwest::get(url).await?.json::<SpeedTestServerInfo>().await?;
 
     //println!("body = {:?}", body);
     Ok(body)
@@ -37,7 +32,7 @@ fn timestamp() -> i64 {
     dt.timestamp_millis()
 }
 
-async fn ping_server(ping_url: &str) -> Result<(i32, i32), tungstenite::Error> {
+async fn ping_server(ping_url: &str) -> Result<(i32, i32), tungstenite::error::Error> {
     let mut i: i32 = 0;
     let mut ping: i32;
     let mut last_ping_time: i64 = 0;
@@ -102,9 +97,7 @@ async fn ping_server(ping_url: &str) -> Result<(i32, i32), tungstenite::Error> {
 }
 
 async fn download_server(download_url: &str) -> Result<(i32, i32), reqwest::Error> {
-
-    let mut response = reqwest::get(download_url)
-        .await?;
+    let mut response = reqwest::get(download_url).await?;
     let total_size = response.content_length().unwrap_or(0);
 
     let mut downloaded_size: u64 = 0;
@@ -118,7 +111,11 @@ async fn download_server(download_url: &str) -> Result<(i32, i32), reqwest::Erro
         // 计算下载速度
         let elapsed_time = start_time.elapsed().as_secs();
         let download_speed = (downloaded_size / elapsed_time) / 1024; // KB/s
-        println!("Downloaded {:.2}% ({:.2} KB/s)", (downloaded_size as f64 / total_size as f64) * 100.0, download_speed);
+        println!(
+            "Downloaded {:.2}% ({:.2} KB/s)",
+            (downloaded_size as f64 / total_size as f64) * 100.0,
+            download_speed
+        );
         download_time.push(elapsed_time as i64);
         jitter_temp.push(elapsed_time as i32);
     }
@@ -143,7 +140,7 @@ async fn download_server(download_url: &str) -> Result<(i32, i32), reqwest::Erro
     Ok((jitter, speed))
 }
 
-async fn upload_server(_upload_url: &str) -> Result<(i32,i32), tungstenite::Error> {
+async fn upload_server(_upload_url: &str) -> Result<(i32, i32), tungstenite::Error> {
     Ok((0, 0))
 }
 
@@ -172,7 +169,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let (jitter, ping) = ping_server(ping_url).await?;
     println!("{:?}, ping:{:?}, jitter:{:?}", ping_url, ping, jitter);
 
-    let download_url = std::format!("{}?size=50000000&r={}", recent_server.download_url.as_str(), rand::random::<f64>());
+    let download_url = std::format!(
+        "{}?size=50000000&r={}",
+        recent_server.download_url.as_str(),
+        rand::random::<f64>()
+    );
     let (jitter, download) = download_server(download_url.as_str()).await?;
     println!("{:?}, download:{:?}, jitter:{:?}", download_url, download, jitter);
 

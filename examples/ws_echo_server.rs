@@ -21,11 +21,7 @@ async fn handle_connection(raw_stream: TcpStream, addr: SocketAddr) {
     let (outgoing, incoming) = ws_stream.split();
 
     let broadcast_incoming = incoming.try_for_each(|msg| {
-        println!(
-            "Received a message from {}: {}",
-            addr,
-            msg.to_text().unwrap()
-        );
+        println!("Received a message from {}: {}", addr, msg.to_text().unwrap());
         tx.unbounded_send(msg.clone()).unwrap();
 
         future::ok(())
@@ -41,9 +37,7 @@ async fn handle_connection(raw_stream: TcpStream, addr: SocketAddr) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let addr = env::args()
-        .nth(1)
-        .unwrap_or_else(|| "127.0.0.1:8080".to_string());
+    let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:8080".to_string());
 
     // Create the event loop and TCP listener we'll accept connections on.
     let try_socket = TcpListener::bind(&addr).await;

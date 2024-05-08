@@ -13,10 +13,7 @@ async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
     loop {
         let url = std::format!(
             "hello {}",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
         );
         tx.unbounded_send(Message::binary(url.as_bytes())).unwrap();
         thread::sleep(ten_millis);
@@ -25,9 +22,7 @@ async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let connect_addr = env::args()
-        .nth(1)
-        .unwrap_or_else(|| "ws://127.0.0.1:8080/".to_string());
+    let connect_addr = env::args().nth(1).unwrap_or_else(|| "ws://127.0.0.1:8080/".to_string());
 
     let url = url::Url::parse(&connect_addr).unwrap();
 
@@ -42,10 +37,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let stdin_to_ws = stdin_rx.map(Ok).forward(write);
     let ws_to_stdout = {
         read.for_each(|message| async {
-            println!(
-                "Received a message : {}",
-                message.unwrap().to_text().unwrap()
-            );
+            println!("Received a message : {}", message.unwrap().to_text().unwrap());
         })
     };
 
