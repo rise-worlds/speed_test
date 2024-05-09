@@ -6,6 +6,8 @@ use futures_util::{SinkExt, StreamExt};
 use reqwest;
 use std::error::Error;
 use std::str;
+use std::time::Duration;
+
 pub extern crate rand;
 use tokio::time::Instant;
 use tokio_tungstenite::{connect_async_tls_with_config, tungstenite::protocol::Message};
@@ -99,45 +101,65 @@ async fn ping_server(ping_url: &str) -> Result<(i32, i32), tungstenite::error::E
 async fn download_server(download_url: &str) -> Result<(i32, i32), reqwest::Error> {
     let mut response = reqwest::get(download_url).await?;
     let total_size = response.content_length().unwrap_or(0);
-
-    let mut downloaded_size: u64 = 0;
-    // let mut buffer = [0; 4096];
+    let mut jitter = 0;
+    let mut downloaded_size: f64 = 0.0;
+    // 初始化下载的字节数
+    let mut total_bytes: f64 = 0.0;
     let start_time = Instant::now();
-    let mut download_time: Vec<i64> = Vec::new();
-    let mut jitter_temp: Vec<i32> = Vec::new();
+    // 检查是否成功响应
+    // if response.status().is_success() {
+    //     // 当前时间
+    //     let mut current = start_time;
+    //
+    //     // 循环直到30秒结束
+    //     while current.duration_since(start_time) < Duration::new(30, 0) {
+    //         // 检查是否有可读的数据
+    //         let bytes_read = response.content_length().unwrap_or(0) as f64;
+    //         if bytes_read == 0.0 {
+    //             break;
+    //         }
+    //
+    //         // 更新总字节数
+    //         total_bytes += bytes_read;
+    //
+    //         // 更新当前时间
+    //         current = Instant::now();
+    //     }
 
-    while let Some(chunk) = response.chunk().await? {
-        downloaded_size += chunk.len() as u64;
-        // 计算下载速度
-        let elapsed_time = start_time.elapsed().as_secs();
-        let download_speed = (downloaded_size / elapsed_time) / 1024; // KB/s
-        println!(
-            "Downloaded {:.2}% ({:.2} KB/s)",
-            (downloaded_size as f64 / total_size as f64) * 100.0,
-            download_speed
-        );
-        download_time.push(elapsed_time as i64);
-        jitter_temp.push(elapsed_time as i32);
-    }
-
-    let mut jitter_sum = 0;
-    let mut jitter_list: Vec<i32> = Vec::new();
-    let mut speed = jitter_temp[0];
-    let count = jitter_temp.len();
-    for i in 0..(count - 1) {
-        let temp = jitter_temp[i];
-        if temp < speed {
-            speed = temp;
+        while let Some(chunk) = response.chunk().await? {
+            downloaded_size += chunk.len() as f64;
+            // 计算下载速度
+            let elapsed_time = start_time.elapsed().as_secs_f64();
+            let download_speed = (downloaded_size / elapsed_time) / 1024.0; // KB/s
+            println!(
+                "Downloaded {:.2}% ({:.2} KB/s)",
+                (downloaded_size / total_size as f64) * 100.0,
+                download_speed
+            );
+            // download_time.push(elapsed_time as i64);
+            // jitter_temp.push(elapsed_time as i32);
         }
-        if i > 0 {
-            let jitter = (jitter_temp[i + 1] - temp).abs() as i32;
-            jitter_sum += jitter;
-            jitter_list.push(jitter);
-        }
-    }
-    let jitter = jitter_sum / count as i32;
-
-    Ok((jitter, speed))
+        //
+        // let mut jitter_sum: i32 = 0;
+        // let mut jitter_list: Vec<i32> = Vec::new();
+        // let mut speed = jitter_temp[0];
+        // let count = jitter_temp.len();
+        // for i in 0..(count - 1) {
+        //     let temp = jitter_temp[i];
+        //     if temp < speed {
+        //         speed = temp;
+        //     }
+        //     if i > 0 {
+        //         let jitter = (jitter_temp[i + 1] - temp).abs() as i32;
+        //         jitter_sum += jitter;
+        //         jitter_list.push(jitter);
+        //     }
+        // }
+        // jitter = jitter_sum / count as i32;
+    // }
+    let elapsed_time = start_time.elapsed().as_secs_f64();
+    let download_speed = (total_bytes / elapsed_time) / 1024.0; // KB/s
+    Ok((jitter, download_speed as i32))
 }
 
 async fn upload_server(_upload_url: &str) -> Result<(i32, i32), tungstenite::Error> {
@@ -165,9 +187,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let recent_server = servers.data.get(0).unwrap();
     println!("{:?}", recent_server);
 
-    let ping_url = recent_server.websocket_url.as_str();
-    let (jitter, ping) = ping_server(ping_url).await?;
-    println!("{:?}, ping:{:?}, jitter:{:?}", ping_url, ping, jitter);
+    // let ping_url = recent_server.websocket_url.as_str();
+    // let (jitter, ping) = ping_server(ping_url).await?;
+    // println!("{:?}, ping:{:?}, jitter:{:?}", ping_url, ping, jitter);
 
     let download_url = std::format!(
         "{}?size=50000000&r={}",

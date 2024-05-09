@@ -1,4 +1,4 @@
-# Speed Test
+# SpeedTest for speedtest.cn
 `rust`版命令行测试工具，支持[测速网](https://www.speedtest.cn/)
 
 ## 编译

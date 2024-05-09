@@ -16,6 +16,9 @@ aws-lc-sys = "0.16.0"
 #hyper-tls = "0.6.0"
 #openssl-sys = "0.9.102"
 tungstenite = "0.21.0"
+speedtest-rs = "0.1.5"
+futures = "0.3.30"
+anyhow = "1.0.83"
 
 [dependencies.rand]
 version = "0.8.5"
