@@ -1,24 +1,25 @@
+use std::sync::Arc;
 use anyhow::{Error, Result};
 use futures::future::join_all;
 use futures::StreamExt;
+use reqwest::header;
 use reqwest::header::{ACCEPT_RANGES, CONTENT_LENGTH, RANGE};
 use reqwest::IntoUrl;
-use std::io::SeekFrom;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
-use std::time::Instant;
-use tokio::fs::{File, remove_file};
-use tokio::io::{AsyncSeekExt, AsyncWriteExt};
-use tokio::sync::Mutex;
+use tokio::sync::Semaphore;
+use tokio::time::Instant;
 
-pub async fn check_request_range<U: IntoUrl>(url: U) -> Result<(bool, u64)> {
+async fn check_request_range<U: IntoUrl>(url: U) -> Result<(bool, u64)> {
     let mut range = false;
-    let req = reqwest::Client::new().head(url);
-    let rep = req.send().await?;
-    if !rep.status().is_success() {
+    let client = reqwest::Client::new();
+    let response = client
+        .head(url)
+        .header(header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+        .send()
+        .await?;
+    if !response.status().is_success() {
         return Err(Error::msg("request fail"));
     }
-    let headers = rep.headers();
+    let headers = response.headers();
     if headers
         .get(ACCEPT_RANGES)
         .map(|val| (val.to_str().ok()?.eq("bytes")).then(|| ()))
@@ -37,18 +38,16 @@ pub async fn check_request_range<U: IntoUrl>(url: U) -> Result<(bool, u64)> {
     Ok((range, length))
 }
 
-async fn download_partial<U: IntoUrl>(url: U, (mut start, end): (u64, u64), is_partial: bool,
-                              file: Arc<Mutex<File>>) -> Result<()> {
-    let req = reqwest::Client::new().get(url);
+async fn download_partial<U: IntoUrl>(url: U, (mut start, end): (u64, u64)) -> Result<()> {
+    let req = reqwest::Client::new().get(url)
+        .header(header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
 
-    let req = if is_partial {
+    let req = {
         if end == u64::MAX {
             req.header(RANGE, format!("bytes={}-{}", start, ""))
         } else {
             req.header(RANGE, format!("bytes={}-{}", start, end))
         }
-    } else {
-        req
     };
     let rep = req.send().await?;
     if !rep.status().is_success() {
@@ -56,49 +55,45 @@ async fn download_partial<U: IntoUrl>(url: U, (mut start, end): (u64, u64), is_p
     }
     let mut stream = rep.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        let mut chunk = chunk?;
-        let mut file = file.lock().await;
-        file.seek(SeekFrom::Start(start)).await?;
+        let chunk = chunk?;
         start += chunk.len() as u64;
-        file.write_all_buf(&mut chunk).await?;
     }
     Ok(())
 }
 
-pub async fn download<U: IntoUrl, P: AsRef<Path>>(url: U, path: P, task_num: u64) -> Result<()> {
-    let url = url.into_url()?;
+pub async fn download(url: &str, download_size: u64, task_length: u64, parallel_task_num: usize) -> Result<()> {
+    let download_url = std::format!(
+        "{}?size={}&r={}",
+        url,
+        download_size,
+        rand::random::<f64>()
+    );
+    let url: &str = &download_url.clone();
     let mut handles = vec![];
-    let (range, length) = check_request_range(url.clone()).await?;
-    let file = Arc::new(Mutex::new(File::create(&path).await?));
-    let is_error = if range {
-        let task_length = length / task_num;
-        for i in 0..(task_num - 1) {        // 线程数必须大于等于1
-            let file = Arc::clone(&file);
-            handles.push(tokio::spawn(download_partial(
-                url.clone(),
-                (task_length * i, task_length * (i + 1) - 1),
-                true,
-                file,
-            )));
+    let is_error = {
+        let task_num = task_length / download_size;
+        let semaphore = Arc::new(Semaphore::new(parallel_task_num));
+        for i in 0..(task_num - 1) {
+            // 线程数必须大于等于1
+            let semaphore = Arc::clone(&semaphore);
+            handles.push(tokio::spawn(async {
+                let _permit = semaphore.acquire().await.unwrap();
+                download_partial(url.clone(), (task_length * i, task_length * (i + 1) - 1))
+            }));
         }
         {
-            let file = Arc::clone(&file);
-            handles.push(tokio::spawn(
-                download_partial(url.clone(), (task_length * (task_num - 1), u64::MAX), true, file)
-            ));
+            let semaphore = Arc::clone(&semaphore);
+            handles.push(tokio::spawn(async {
+                let _permit = semaphore.acquire().await.unwrap();
+                download_partial(url.clone(), (task_length * (task_num - 1), u64::MAX))
+            }));
         }
 
         let ret = join_all(handles).await;
-        drop(file);
         ret.into_iter().flatten().any(|n| n.is_err())
-    } else {
-        download_partial(url.clone(), (0, length - 1), false, file)
-            .await
-            .is_err()
     };
     if is_error {
-        remove_file(&path).await?;
-        Err(Error::msg("download file error"))
+        Err(Error::msg("download error"))
     } else {
         Ok(())
     }

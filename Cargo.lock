@@ -1836,7 +1836,6 @@ name = "speed_test"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "aws-lc-sys",
  "chrono",
  "futures",
  "futures-channel",
