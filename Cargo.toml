@@ -19,6 +19,7 @@ tungstenite = "0.21.0"
 speedtest-rs = "0.1.5"
 futures = "0.3.30"
 anyhow = "1.0.83"
+http = "1.1.0"
 
 [dependencies.rand]
 version = "0.8.5"
