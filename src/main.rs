@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // println!("{:?}, ping:{:?}, jitter:{:?}", ping_url, ping, jitter);
 
     let download_url = recent_server.download_url.as_str();
-    let download = download(download_url, 50_000_000, 5000, 8).await?;
+    let download = download(download_url, 500_000_000, 1_000_000, 8).await?;
     println!("{:?}, download:{:?}", download_url, download);
 
     // let upload_url = recent_server.upload_url.as_str();
