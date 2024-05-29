@@ -77,6 +77,16 @@ pub async fn download(url: &str, total_size: u64, chunk_size: u64, parallel_task
     // 计算需要下载的分段数量
     let chunks = (total_size as f64 / chunk_size as f64).ceil() as u64;
     let mut tasks  = vec![];
+    tasks.push(tokio::spawn(async {
+        let mut count: u64 = 0;
+        let mut last_count: u64 = 0;
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            count = TOTAL_DOWNLOAD_BYTES.load(Ordering::Relaxed);
+            println!("download {}b/s", count - last_count);
+            last_count = count;
+        }
+    }));
     for i in 0..chunks {
         // 线程数必须大于等于1
         let semaphore = semaphore.clone();
