@@ -1,5 +1,5 @@
-pub mod speed_test_structure;
-pub mod ping;
 pub mod download;
-pub mod upload;
+pub mod ping;
 pub mod speed_test;
+pub mod speed_test_structure;
+pub mod upload;
